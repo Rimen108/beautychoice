@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>BeautyChoice — Réfléchissez avant de choisir</title>
+<style>
+  :root {
+    --rose: #C9184A;
+    --rose-light: #FF4D6D;
+    --rose-pale: #fff0f3;
+    --plum: #1A0A2E;
+    --plum-mid: #2D1B4E;
+    --purple: #7B2D8B;
+    --gold: #FFB703;
+    --gold-dark: #FB8500;
+    --white: #FFFFFF;
+    --off: #F8F4FF;
+    --text: #1A0A2E;
+    --text2: #6B6B8A;
+    --border: rgba(26,10,46,0.10);
+    --card: #FFFFFF;
+    --surface: #F8F4FF;
+    --green: #2DC653;
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--plum); }
+
+  .app-shell {
+    max-width: 430px; margin: 0 auto;
+    min-height: 100vh;
+    background: var(--white);
+    display: flex; flex-direction: column;
+    position: relative; overflow: hidden;
+  }
+
+  /* ── HEADER HERO ── */
+  .hero {
+    background: var(--plum);
+    padding: 2.5rem 1.5rem 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; top: -60px; left: -60px;
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    background: var(--purple);
+    opacity: 0.35;
+  }
+  .hero::after {
+    content: '';
+    position: absolute; bottom: -40px; right: -30px;
+    width: 160px; height: 160px;
+    border-radius: 50%;
+    background: var(--rose);
+    opacity: 0.25;
+  }
+  .hero-inner { position: relative; z-index: 1; }
+  .app-icon {
+    width: 64px; height: 64px;
+    background: var(--rose);
+    border-radius: 20px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px;
+    margin: 0 auto 14px;
+  }
+  .hero h1 { font-size: 28px; font-weight: 700; color: #fff; letter-spacing: -0.5px; }
+  .hero p { font-size: 13px; color: rgba(255,255,255,0.60); margin-top: 6px; }
+
+  /* ── PROGRESS ── */
+  .progress-wrap { padding: 0 1.5rem; background: var(--white); padding-top: 16px; }
+  .progress-steps { display: flex; gap: 6px; margin-bottom: 8px; }
+  .step-dot {
+    flex: 1; height: 4px; border-radius: 99px;
+    background: var(--surface);
+    transition: background 0.35s;
+  }
+  .step-dot.done { background: var(--rose); }
+  .step-dot.active { background: var(--rose-light); }
+  .step-label { font-size: 11px; color: var(--text2); letter-spacing: 0.04em; text-transform: uppercase; }
+
+  /* ── SCREEN BODY ── */
+  .screens { flex: 1; }
+  .screen { display: none; padding: 1.25rem 1.5rem 2rem; }
+  .screen.active { display: block; }
+
+  .screen-q {
+    font-size: 20px; font-weight: 700; color: var(--plum);
+    line-height: 1.35; margin-bottom: 1.5rem;
+  }
+  .screen-sub { font-size: 13px; color: var(--text2); margin-bottom: 1.25rem; margin-top: -1rem; }
+
+  /* ── CHOICE BUTTONS ── */
+  .choice-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 1.5rem; }
+  .choice {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--white);
+    cursor: pointer;
+    transition: all 0.18s;
+    text-align: left;
+  }
+  .choice:hover { border-color: var(--rose); background: var(--rose-pale); }
+  .choice.sel { border-color: var(--rose); background: var(--rose-pale); }
+  .choice.sel .choice-check { background: var(--rose); border-color: var(--rose); }
+  .choice.sel .choice-check::after { opacity: 1; }
+  .choice-icon-wrap {
+    width: 44px; height: 44px; border-radius: 12px;
+    background: var(--surface);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; flex-shrink: 0;
+    transition: background 0.18s;
+  }
+  .choice.sel .choice-icon-wrap { background: rgba(201,24,74,0.12); }
+  .choice-text { flex: 1; }
+  .choice-name { font-size: 14px; font-weight: 600; color: var(--plum); }
+  .choice-desc { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .choice-check {
+    width: 22px; height: 22px; border-radius: 50%;
+    border: 1.5px solid var(--border);
+    flex-shrink: 0;
+    position: relative;
+    transition: all 0.18s;
+  }
+  .choice-check::after {
+    content: '';
+    position: absolute; top: 5px; left: 5px;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: #fff;
+    opacity: 0;
+    transition: opacity 0.18s;
+  }
+
+  /* ── PRIMARY BUTTON ── */
+  .btn-primary {
+    width: 100%; padding: 15px;
+    background: var(--rose);
+    color: #fff;
+    border: none; border-radius: var(--radius-sm);
+    font-size: 15px; font-weight: 700;
+    cursor: pointer; letter-spacing: 0.01em;
+    transition: opacity 0.15s, transform 0.1s;
+  }
+  .btn-primary:disabled { opacity: 0.30; cursor: not-allowed; }
+  .btn-primary:not(:disabled):active { transform: scale(0.98); }
+  .btn-secondary {
+    width: 100%; padding: 13px;
+    background: transparent;
+    color: var(--plum);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 14px; font-weight: 600;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: all 0.15s;
+  }
+  .btn-secondary:hover { border-color: var(--plum); background: var(--surface); }
+
+  /* ── CONSEQUENCE CARDS ── */
+  .consequences { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1.5rem; }
+  .cons-card {
+    background: var(--surface);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+  }
+  .cons-icon { font-size: 22px; margin-bottom: 6px; }
+  .cons-label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+  .cons-val { font-size: 13px; font-weight: 600; color: var(--plum); line-height: 1.35; }
+
+  .alt-section-title { font-size: 12px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; }
+  .alt-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1.5rem; }
+  .alt-chip {
+    background: #E8F5E9;
+    color: #1B5E20;
+    border-radius: 99px;
+    padding: 6px 14px;
+    font-size: 12px; font-weight: 600;
+  }
+
+  /* ── RESULT SCREEN ── */
+  .result-circle-wrap { display: flex; justify-content: center; margin: 1rem 0 1.5rem; }
+  .result-circle {
+    width: 160px; height: 160px;
+    border-radius: 50%;
+    background: var(--surface);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    border: 6px solid var(--rose);
+  }
+  .result-pct { font-size: 42px; font-weight: 800; color: var(--rose); line-height: 1; }
+  .result-pct-label { font-size: 11px; color: var(--text2); margin-top: 4px; text-align: center; line-height: 1.3; }
+
+  .result-msg-card {
+    background: var(--plum);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+  .result-msg-title { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .result-msg-body { font-size: 14px; color: rgba(255,255,255,0.9); line-height: 1.6; }
+
+  .verdict-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 1.5rem; }
+  .verdict-label { font-size: 12px; color: var(--text2); white-space: nowrap; }
+  .verdict-track { flex: 1; height: 8px; background: var(--surface); border-radius: 99px; overflow: hidden; }
+  .verdict-fill { height: 100%; border-radius: 99px; background: var(--rose); transition: width 1s ease; }
+
+  /* ── STATS SCREEN ── */
+  .stats-hero {
+    background: var(--plum);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    margin-bottom: 1.25rem;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .stats-hero-icon { font-size: 36px; }
+  .stats-hero-text h2 { font-size: 16px; font-weight: 700; color: #fff; }
+  .stats-hero-text p { font-size: 12px; color: rgba(255,255,255,0.55); margin-top: 3px; }
+
+  .metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1.25rem; }
+  .metric-card { background: var(--surface); border-radius: var(--radius-sm); padding: 14px; text-align: center; }
+  .metric-num { font-size: 28px; font-weight: 800; color: var(--plum); }
+  .metric-num.rose { color: var(--rose); }
+  .metric-tag { font-size: 11px; color: var(--text2); margin-top: 4px; line-height: 1.3; }
+
+  .bar-section-title { font-size: 12px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; }
+  .bar-item { margin-bottom: 14px; }
+  .bar-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+  .bar-name { font-size: 13px; font-weight: 600; color: var(--plum); }
+  .bar-pct { font-size: 13px; font-weight: 700; color: var(--rose); }
+  .bar-track { height: 8px; background: var(--surface); border-radius: 99px; overflow: hidden; }
+  .bar-fill { height: 100%; background: var(--rose); border-radius: 99px; transition: width 0.7s ease; width: 0; }
+
+  .divider { height: 1px; background: var(--border); margin: 1.25rem 0; }
+
+  /* ── BACK NAV ── */
+  .top-nav { display: flex; align-items: center; gap: 10px; padding: 14px 1.5rem 0; }
+  .back-btn {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--surface); border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; color: var(--plum);
+    transition: background 0.15s;
+  }
+  .back-btn:hover { background: var(--border); }
+  .nav-title { font-size: 14px; font-weight: 600; color: var(--plum); }
+
+  /* ── WELCOME SCREEN ── */
+  .welcome-body { padding: 1.5rem; }
+  .welcome-intro {
+    font-size: 20px; font-weight: 700; color: var(--plum);
+    line-height: 1.35; margin-bottom: 8px;
+  }
+  .welcome-sub { font-size: 14px; color: var(--text2); line-height: 1.6; margin-bottom: 1.75rem; }
+  .flow-steps { display: flex; flex-direction: column; gap: 12px; margin-bottom: 2rem; }
+  .flow-step { display: flex; gap: 14px; align-items: flex-start; }
+  .flow-num {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--plum); color: #fff;
+    font-size: 12px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 1px;
+  }
+  .flow-step-text { font-size: 13px; color: var(--text2); line-height: 1.5; }
+  .flow-step-text strong { color: var(--plum); font-weight: 600; }
+
+  @media (max-width: 430px) {
+    .app-shell { max-width: 100%; }
+  }
+</style>
+</head>
+<body>
+<div class="app-shell">
+
+  <div class="hero">
+    <div class="hero-inner">
+      
+      <h1>BeautyChoice</h1>
+      <p>Réfléchissez avant de choisir</p>
+    </div>
+  </div>
+
+  <div class="progress-wrap" id="progress-wrap" style="display:none;">
+    <div class="progress-steps" id="progress-steps">
+      <div class="step-dot" id="dot0"></div>
+      <div class="step-dot" id="dot1"></div>
+      <div class="step-dot" id="dot2"></div>
+      <div class="step-dot" id="dot3"></div>
+      <div class="step-dot" id="dot4"></div>
+    </div>
+    <div class="step-label" id="step-label">Étape 1 sur 4</div>
+  </div>
+
+  <div class="screens">
+
+    <!-- SCREEN 0: Welcome -->
+    <div class="screen active" id="s0">
+      <div class="welcome-body">
+        <p class="welcome-intro">Une app pour réfléchir avant de décider.</p>
+        <p class="welcome-sub">Explorez les implications réelles d'une chirurgie esthétique — coûts, risques, et part de pression sociale dans votre choix.</p>
+        <div class="flow-steps">
+          <div class="flow-step"><div class="flow-num">1</div><div class="flow-step-text"><strong>Choisissez</strong> la zone qui vous préoccupe</div></div>
+          <div class="flow-step"><div class="flow-num">2</div><div class="flow-step-text"><strong>Identifiez</strong> votre raison profonde</div></div>
+          <div class="flow-step"><div class="flow-num">3</div><div class="flow-step-text"><strong>Découvrez</strong> les conséquences réelles</div></div>
+          <div class="flow-step"><div class="flow-num">4</div><div class="flow-step-text"><strong>Obtenez</strong> votre score de pression sociale</div></div>
+        </div>
+        <button class="btn-primary" onclick="goTo(1)">Commencer &#8594;</button>
+      </div>
+    </div>
+
+    <!-- SCREEN 1: Initial feeling -->
+    <div class="screen" id="s1">
+      <div class="top-nav"><button class="back-btn" onclick="goTo(0)">&#8592;</button><span class="nav-title">Question préliminaire</span></div>
+      <div style="padding: 1.25rem 1.5rem 2rem;">
+        <p class="screen-q">Voudriez-vous changer quelque chose dans votre apparence ?</p>
+        <div class="choice-list" id="s1-choices">
+          <div class="choice" onclick="pick('s1','yes','Oui, clairement',this)">
+            <div class="choice-icon-wrap">&#9989;</div>
+            <div class="choice-text"><div class="choice-name">Oui, clairement</div><div class="choice-desc">Il y a quelque chose qui me dérange</div></div>
+            <div class="choice-check"></div>
+          </div>
+          <div class="choice" onclick="pick('s1','no','Non',this)">
+            <div class="choice-icon-wrap">&#10084;&#65039;</div>
+            <div class="choice-text"><div class="choice-name">Non, je m'accepte</div><div class="choice-desc">Je suis globalement à l'aise avec mon corps</div></div>
+            <div class="choice-check"></div>
+          </div>
+          <div class="choice" onclick="pick('s1','maybe','Je ne sais pas',this)">
+            <div class="choice-icon-wrap">&#129300;</div>
+            <div class="choice-text"><div class="choice-name">Je ne sais pas encore</div><div class="choice-desc">Je me pose des questions</div></div>
+            <div class="choice-check"></div>
+          </div>
+        </div>
+        <button class="btn-primary" id="btn1" disabled onclick="goTo(2)">Suivant &#8594;</button>
+      </div>
+    </div>
+
+    <!-- SCREEN 2: Zone -->
+    <div class="screen" id="s2">
+      <div class="top-nav"><button class="back-btn" onclick="goTo(1)">&#8592;</button><span class="nav-title">Zone concernée</span></div>
+      <div style="padding: 1.25rem 1.5rem 2rem;">
+        <p class="screen-q">Quelle partie du corps vous préoccupe le plus ?</p>
+        <p class="screen-sub">Choisissez la zone la plus représentative.</p>
+        <div class="choice-list" id="s2-choices">
+          <div class="choice" onclick="pickZone('nose','Nez','Rhinoplastie',this)">
+            <div class="choice-icon-wrap">&#128067;</div>
+            <div class="choice-text"><div class="choice-name">Le nez</div><div class="choice-desc">Rhinoplastie</div></div>
+            <div class="choice-check"></div>
+          </div>
+          <div class="choice" onclick="pickZone('lips','Lèvres','Fillers lèvres',this)">
+            <div class="choice-icon-wrap">&#128139;</div>
+            <div class="choice-text"><div class="choice-name">Les lèvres</div><div class="choice-desc">Injections de fillers</div></div>
+            <div class="choice-check"></div>
+          </div>
+          <div class="choice" onclick="pickZone('body','Silhouette','Liposuccion',this)">
+            <div class="choice-icon-wrap">&#127947;</div>
+            <div class="choice-text"><div class="choice-name">La silhouette</div><div class="choice-desc">Liposuccion / abdominoplastie</div></div>
+            <div class="choice-check"></div>
+          </div>
+          <div class="choice" onclick="pickZone('hair','Cheveux','Greffe capillaire',this)">
+            <div class="choice-icon-wrap">&#128136;</div>
+            <div class="choice-text"><div class="choice-name">Les cheveux</div><div class="choice-desc">Greffe capillaire</div></div>
+            <div class="choice-check"></div>
+          </div>
+          <div class="choice" onclick="pickZone('skin','Peau / rides','Botox',this)">
+            <div class="choice-icon-wrap">&#10024;</div>
+            <div class="choice-text"><div class="choice-name">Peau &amp; rides</div><div class="choice-desc">Botox, fillers, laser</div></div>
+            <div class="choice-check"></div>
+          </div>
+        </div>
+        <button class="btn-primary" id="btn2" disabled onclick="goTo(3)">Suivant &#8594;</button>
+      </div>
+    </div>
+
+    <!-- SCREEN 3: Why -->
+    <div class="screen" id="s3">
+      <div class="top-nav"><button class="back-btn" onclick="goTo(2)">&#8592;</button><span class="nav-title">Votre motivation</span></div>
+      <div style="padding: 1.25rem 1.5rem 2rem;">
+        <p class="screen-q">Pourquoi souhaiteriez-vous cette intervention ?</p>
+        <p class="screen-sub">Soyez honnête — personne ne vous juge.</p>
+        <div class="choice-list" id="s3-choices">
+          <div class="choice" onclick="pickReason('confidence',20,'Manque de confiance',this)">
+            <div class="choice-icon-wrap">&#128532;</div>
+            <div class="choice-text"><div class="choice-name">Manque de confiance</div><div class="choice-desc">Je me sens complexé(e) depuis longtemps</div></div>
+            <div class="choice-check"></div>
+          </div>
+          <div class="choice" onclick="pickReason('social',88,'Influence des réseaux',this)">
+            <div class="choice-icon-wrap">&#128247;</div>
+            <div class="choice-text"><div class="choice-name">Influence des réseaux</div><div class="choice-desc">Les standards vus en ligne m'impactent</div></div>
+            <div class="choice-check"></div>
+          </div>
+          <div class="choice" onclick="pickReason('medical',5,'Raison médicale',this)">
+            <div class="choice-icon-wrap">&#127973;</div>
+            <div class="choice-text"><div class="choice-name">Raison médicale</div><div class="choice-desc">Problème fonctionnel ou de santé</div></div>
+            <div class="choice-check"></div>
+          </div>
+          <div class="choice" onclick="pickReason('personal',18,'Désir personnel',this)">
+            <div class="choice-icon-wrap">&#128161;</div>
+            <div class="choice-text"><div class="choice-name">Désir personnel profond</div><div class="choice-desc">C'est un choix réfléchi depuis longtemps</div></div>
+            <div class="choice-check"></div>
+          </div>
+          <div class="choice" onclick="pickReason('criticism',92,'Remarques extérieures',this)">
+            <div class="choice-icon-wrap">&#128172;</div>
+            <div class="choice-text"><div class="choice-name">Remarques extérieures</div><div class="choice-desc">Des gens ont commenté mon apparence</div></div>
+            <div class="choice-check"></div>
+          </div>
+        </div>
+        <button class="btn-primary" id="btn3" disabled onclick="goTo(4)">Suivant &#8594;</button>
+      </div>
+    </div>
+
+    <!-- SCREEN 4: Consequences -->
+    <div class="screen" id="s4">
+      <div class="top-nav"><button class="back-btn" onclick="goTo(3)">&#8592;</button><span class="nav-title">Ce que ça implique</span></div>
+      <div style="padding: 1.25rem 1.5rem 2rem;">
+        <p class="screen-q" id="cons-title">Rhinoplastie — la réalité</p>
+        <div class="consequences" id="cons-grid"></div>
+        <div class="divider"></div>
+        <p class="alt-section-title">&#127807; Alternatives non chirurgicales</p>
+        <div class="alt-chips" id="alt-chips"></div>
+        <button class="btn-primary" onclick="goTo(5)">Voir mon résultat &#8594;</button>
+      </div>
+    </div>
+
+    <!-- SCREEN 5: Result -->
+    <div class="screen" id="s5">
+      <div class="top-nav"><button class="back-btn" onclick="goTo(4)">&#8592;</button><span class="nav-title">Votre analyse</span></div>
+      <div style="padding: 1.25rem 1.5rem 2rem;">
+        <div class="result-circle-wrap">
+          <div class="result-circle">
+            <div class="result-pct" id="res-pct">0%</div>
+            <div class="result-pct-label">pression<br>sociale</div>
+          </div>
+        </div>
+        <div class="verdict-bar">
+          <span class="verdict-label">Libre</span>
+          <div class="verdict-track"><div class="verdict-fill" id="verdict-fill"></div></div>
+          <span class="verdict-label">Pression</span>
+        </div>
+        <div class="result-msg-card">
+          <div class="result-msg-title">Notre analyse</div>
+          <div class="result-msg-body" id="res-msg"></div>
+        </div>
+        <button class="btn-primary" onclick="goTo(6)">&#128202; Voir les stats de classe</button>
+        <button class="btn-secondary" onclick="restart()">&#8635; Recommencer</button>
+      </div>
+    </div>
+
+    <!-- SCREEN 6: Class Stats -->
+    <div class="screen" id="s6">
+      <div class="top-nav"><button class="back-btn" onclick="goTo(5)">&#8592;</button><span class="nav-title">Mode professeur</span></div>
+      <div style="padding: 1.25rem 1.5rem 2rem;">
+        <div class="stats-hero">
+          <div class="stats-hero-icon">&#127891;</div>
+          <div class="stats-hero-text">
+            <h2>Statistiques de la classe</h2>
+            <p id="stats-count">0 réponse enregistrée</p>
+          </div>
+        </div>
+        <div class="metrics-grid" id="metrics-grid"></div>
+        <div class="divider"></div>
+        <p class="bar-section-title">Zones les plus citées</p>
+        <div id="zone-bars"></div>
+        <div class="divider"></div>
+        <p class="bar-section-title">Raisons évoquées</p>
+        <div id="reason-bars"></div>
+        <div class="divider"></div>
+        <button class="btn-secondary" onclick="resetStats()">&#128465; Réinitialiser les données</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const S = { feeling: null, zone: null, zoneName: null, proc: null, reason: null, reasonName: null, pressure: 0 };
+let stats = JSON.parse(localStorage.getItem('bc_stats') || '{"total":0,"feelings":{},"zones":{},"reasons":{}}');
+
+const DATA = {
+  nose:  { cost:'3 000 – 12 000 €', risk:'Complications resp., asymétrie', rec:'3–6 semaines', psych:'Résultats souvent bien vécus' },
+  lips:  { cost:'400 – 1 500 €',    risk:'Gonflements, nodules, addiction', rec:'3–7 jours',   psych:'Risque de dépendance aux retouches' },
+  body:  { cost:'3 000 – 9 000 €',  risk:'Embolie, infections, irrégularités', rec:'4–6 semaines', psych:'Satisfaction variable à long terme' },
+  hair:  { cost:'2 000 – 10 000 €', risk:'Cicatrices, résultats inégaux', rec:'1–2 semaines', psych:'Regain de confiance fréquent' },
+  skin:  { cost:'200 – 2 000 €',    risk:'Paralysie temp., ptosis, addiction', rec:'1–3 jours', psych:'Risque d\'habitude aux injections' },
+};
+const ALTS = {
+  confidence: ['Sport régulier','Thérapie cognitive (TCC)','Méditation de pleine conscience','Coaching en développement personnel'],
+  social:     ['Détox des réseaux sociaux','Psychothérapie','Communautés body positive','Journaling d\'estime de soi'],
+  medical:    ['Consultation avec un spécialiste ORL / dermatologue','Bilan médical complet avant tout'],
+  personal:   ['Période de réflexion de 6 mois minimum','Consultation pré-op obligatoire avec un psychologue'],
+  criticism:  ['Thérapie de soutien','Travail sur l\'estime de soi','Distanciation des personnes toxiques'],
+};
+const MSGS = {
+  low:  "Votre démarche semble ancrée dans un désir personnel réfléchi. Prenez quand même le temps d'une consultation avec un professionnel de santé et un psychologue avant toute décision.",
+  mid:  "Une partie de votre motivation est liée à des influences extérieures. Demandez-vous : seriez-vous à l'aise avec ce choix si personne ne vous avait jamais fait de remarque sur votre apparence ?",
+  high: "Votre décision paraît fortement influencée par la pression sociale ou le regard des autres. Explorez d'abord les alternatives non chirurgicales et consultez un professionnel de santé mentale.",
+};
+
+function pick(screen, val, name, el) {
+  document.querySelectorAll('#s'+{s1:'1',s2:'2',s3:'3'}[screen]+' .choice').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');
+  S.feeling = val;
+  stats.feelings[name] = (stats.feelings[name]||0)+1;
+  document.getElementById('btn'+screen.slice(1)).disabled = false;
+}
+
+function pickZone(zone, zoneName, proc, el) {
+  document.querySelectorAll('#s2 .choice').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');
+  S.zone = zone; S.zoneName = zoneName; S.proc = proc;
+  stats.zones[zoneName] = (stats.zones[zoneName]||0)+1;
+  document.getElementById('btn2').disabled = false;
+}
+
+function pickReason(reason, pressure, reasonName, el) {
+  document.querySelectorAll('#s3 .choice').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');
+  S.reason = reason; S.pressure = pressure; S.reasonName = reasonName;
+  stats.reasons[reasonName] = (stats.reasons[reasonName]||0)+1;
+  document.getElementById('btn3').disabled = false;
+}
+
+function buildConsequences() {
+  const d = DATA[S.zone];
+  document.getElementById('cons-title').textContent = S.proc + ' — la réalité';
+  document.getElementById('cons-grid').innerHTML = [
+    {icon:'&#128176;',label:'Coût estimé',val:d.cost},
+    {icon:'&#9888;&#65039;',label:'Risques',val:d.risk},
+    {icon:'&#127973;',label:'Convalescence',val:d.rec},
+    {icon:'&#129504;',label:'Psychologique',val:d.psych},
+  ].map(c=>`<div class="cons-card"><div class="cons-icon">${c.icon}</div><div class="cons-label">${c.label}</div><div class="cons-val">${c.val}</div></div>`).join('');
+  document.getElementById('alt-chips').innerHTML = (ALTS[S.reason]||ALTS.personal).map(a=>`<span class="alt-chip">${a}</span>`).join('');
+}
+
+function buildResult() {
+  stats.total++;
+  saveStats();
+  const pct = S.pressure;
+  const el = document.getElementById('res-pct');
+  let cur = 0;
+  const tick = () => { cur=Math.min(cur+3,pct); el.textContent=cur+'%'; if(cur<pct) setTimeout(tick,18); };
+  setTimeout(tick, 200);
+  setTimeout(()=>{ document.getElementById('verdict-fill').style.width = pct+'%'; }, 300);
+  document.getElementById('res-msg').textContent = pct<=30 ? MSGS.low : pct<=65 ? MSGS.mid : MSGS.high;
+}
+
+function buildStats() {
+  const t = stats.total || 1;
+  document.getElementById('stats-count').textContent = stats.total + ' réponse' + (stats.total>1?'s':'')+' enregistrée'+(stats.total>1?'s':'');
+  const pressure_pct = Math.round(((stats.reasons['Influence des réseaux']||0)+(stats.reasons['Remarques extérieures']||0))/t*100);
+  document.getElementById('metrics-grid').innerHTML = [
+    {num: stats.total, tag:'réponses totales', rose:false},
+    {num: pressure_pct+'%', tag:'influencés par pression sociale', rose:true},
+    {num: Math.round((stats.reasons['Raison médicale']||0)/t*100)+'%', tag:'raison médicale', rose:false},
+    {num: Math.round((stats.feelings['Oui, clairement']||0)/t*100)+'%', tag:'voudraient changer', rose:true},
+  ].map(m=>`<div class="metric-card"><div class="metric-num${m.rose?' rose':''}">${m.num}</div><div class="metric-tag">${m.tag}</div></div>`).join('');
+
+  document.getElementById('zone-bars').innerHTML = Object.entries(stats.zones).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`
+    <div class="bar-item">
+      <div class="bar-row"><span class="bar-name">${k}</span><span class="bar-pct">${Math.round(v/t*100)}%</span></div>
+      <div class="bar-track"><div class="bar-fill" style="width:${Math.round(v/t*100)}%"></div></div>
+    </div>`).join('') || '<p style="font-size:13px;color:var(--text2);">Aucune donnée pour l\'instant.</p>';
+
+  document.getElementById('reason-bars').innerHTML = Object.entries(stats.reasons).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`
+    <div class="bar-item">
+      <div class="bar-row"><span class="bar-name">${k}</span><span class="bar-pct">${Math.round(v/t*100)}%</span></div>
+      <div class="bar-track"><div class="bar-fill" style="width:${Math.round(v/t*100)}%"></div></div>
+    </div>`).join('') || '<p style="font-size:13px;color:var(--text2);">Aucune donnée pour l\'instant.</p>';
+}
+
+function updateProgress(n) {
+  const wrap = document.getElementById('progress-wrap');
+  if(n===0){ wrap.style.display='none'; return; }
+  wrap.style.display='block';
+  const labels = ['', 'Sentiment initial','Zone concernée','Votre raison','Conséquences','Résultat'];
+  document.getElementById('step-label').textContent = n<=5 ? 'Étape '+n+' sur 5' : 'Mode professeur';
+  [0,1,2,3,4].forEach(i=>{
+    const dot = document.getElementById('dot'+i);
+    dot.className = 'step-dot' + (i+1<n?' done': i+1===n?' active':'');
+  });
+}
+
+function goTo(n) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('s'+n).classList.add('active');
+  updateProgress(n);
+  if(n===4) buildConsequences();
+  if(n===5) buildResult();
+  if(n===6) buildStats();
+  window.scrollTo(0,0);
+}
+
+function restart() {
+  Object.assign(S, {feeling:null,zone:null,zoneName:null,proc:null,reason:null,reasonName:null,pressure:0});
+  document.querySelectorAll('.choice').forEach(c=>c.classList.remove('sel'));
+  ['btn1','btn2','btn3'].forEach(id=>document.getElementById(id).disabled=true);
+  document.getElementById('verdict-fill').style.width='0';
+  goTo(0);
+}
+
+function saveStats() { try { localStorage.setItem('bc_stats', JSON.stringify(stats)); } catch(e){} }
+function resetStats() {
+  stats = {total:0,feelings:{},zones:{},reasons:{}};
+  saveStats();
+  buildStats();
+}
+</script>
+</body>
+</html>
